@@ -190,6 +190,7 @@ button {
   border: none;
   color: #fdfdfd;
   cursor: pointer;
+  outline:none;
 }
 
 .input-group {
@@ -203,4 +204,13 @@ button {
   content: " ";
   display: block;
   clear: both;
+}
+
+.active {
+  background-color:#8B0000;
+}
+
+button:hover {
+  transform:scale(1.05, 1.05);
+  transition:300ms ease-in-out;
 }
