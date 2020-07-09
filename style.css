@@ -206,11 +206,11 @@ button {
   clear: both;
 }
 
-.active {
+/* .active {
   background-color:#8B0000;
 }
 
 button:hover {
   transform:scale(1.05, 1.05);
   transition:300ms ease-in-out;
-}
+} */

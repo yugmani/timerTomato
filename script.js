@@ -10,102 +10,153 @@ var restMinutesInput = document.querySelector("#rest-minutes");
 
 var totalSeconds = 0;
 var secondsElapsed = 0;
+var status = "Working";
 var interval;
-var myVar;
-var isPaused = false;
-var seconds;
+
+getTimePreferences();
+
+// Minutes Formatting
+function getFormattedMinutes() {
+  //
+  var secondsLeft = totalSeconds - secondsElapsed;
+
+  var minutesLeft = Math.floor(secondsLeft / 60);
+
+  var formattedMinutes;
+
+  if (minutesLeft < 10) {
+    formattedMinutes = "0" + minutesLeft;
+  } else {
+    formattedMinutes = minutesLeft;
+  }
+
+  return formattedMinutes;
+}
+
+// Seconds Formatting
+function getFormattedSeconds() {
+  var secondsLeft = (totalSeconds - secondsElapsed) % 60;
+
+  var formattedSeconds;
+
+  if (secondsLeft < 10) {
+    formattedSeconds = "0" + secondsLeft;
+  } else {
+    formattedSeconds = secondsLeft;
+  }
+
+  return formattedSeconds;
+}
+
 
 function startTimer() {
-  isPaused = false;
-  clearInterval(myVar);
-  stopButton.classList.remove("active");
-  pauseButton.classList.remove("active");
-  playButton.classList.add("active");
 
   // Write code to start the timer here
-  interval = workMinutesInput.value;
-  if (interval <= 0){
-    alert("Not valid");
-    return;
+  interval = setInterval(function(){
+    secondsElapsed++;
+    renderTime();
+  }, 1000);
+
+}
+
+
+function setTime() {
+  var minutes;
+
+  if (status === "Working") {
+    minutes = workMinutesInput.value.trim();
+  } else {
+    minutes = restMinutesInput.value.trim();
   }
-  else {
-    seconds = 60;
-    myVar = setInterval( myTimer, 1000);
-  }
- }
+
+  clearInterval(interval);
+  totalSeconds = minutes * 60;
+}
     
+function renderTime() {
+  // When renderTime is called it sets the textContent for the timer html...
+  minutesDisplay.textContent = getFormattedMinutes();
+  secondsDisplay.textContent = getFormattedSeconds();
 
- function myTimer() {
-    if (isPaused === false ){
-    // interval -= 1;
-    seconds -= 1;
-
-    if ( (interval <= 0) && (seconds <= 0 ) ){
-      
-      restTimer();
-      clearinterval(myVar);
+ // ..and then checks to see if the time has run out
+  if (secondsElapsed >= totalSeconds) {
+    if (status === "Working") {
+      alert("Time for a break!");
+    } else {
+      alert("Time to get back to work!");
     }
-    else if (seconds <= 0) {
-        seconds = 60;
-        interval -= 1;
-      } 
 
-    secondsDisplay.innerHTML = seconds;
-    minutesDisplay.innerHTML = interval- 1;
-    }
-    else return;
- }
-
+    stopTimer();
+  }
+}
+ 
 
 function pauseTimer() {
-  if (!isPaused){
-    isPaused = true;
-  }
-  else {
-    isPaused = false;
-  }
-  playButton.classList.remove("active");
-  stopButton.classList.remove("active");
-  pauseButton.classList.toggle("active");
+  clearInterval(interval);
+  renderTime();
 }
 
 function stopTimer(){
-  clearInterval(myVar);
-  seconds = 0;
-  interval = 0;
-  stopButton.setAttribute("class", "active");
-  playButton.classList.remove("active");
-  pauseButton.classList.remove("active");
+  secondsElapsed = 0;
+  setTime();
+  renderTime();
 }
 
 
-function restTimer() {
-  restInterval = 5;
-  restSeconds = 60;
+function toggleStatus(event) {
+  var checked = event.target.checked;
 
-  var restVar = setInterval(restTimer, 1000);
+  if (checked) {
+    status = "Working";
+  } else {
+    status = "Resting";
+  }
+
+  statusSpan.textContent = status;
+
+  secondsElapsed = 0;
+  setTime();
+  renderTime();
 }
 
-function restTimer() {
-  if (isPaused === false ){
-  // interval -= 1;
-  restSeconds -= 1;
 
-  if ( (restInterval <= 0) && (restSeconds <= 0 ) ){
-    clearintervalerval(restVar);
-    pauseTimer();
-  }
-  else if (restSeconds <= 0) {
-      restSeconds = 60;
-      restInterval -= 1;
-    } 
 
-  secondsDisplay.innerHTML = restSeconds;
-  minutesDisplay.innerHTML = restInterval- 1;
+function getTimePreferences() {
+  /* Here we check to see if any preferences have 
+     been set in the local storage via "setTimePreferences()" */
+  var preferences = JSON.parse(localStorage.getItem("preferences"));
+
+  /* "setTimePreferences()" is actually never called so the below code will never run 
+     (ie. the "preferences" variable checked below will always be null.
+     The settings are always set by directly checking the input elements in the setTime() function) */
+  if (preferences) {
+    if (preferences.workMinutes) {
+      workMinutesInput.value = preferences.workMinutes;
+    }
+
+    if (preferences.restMinutes) {
+      restMinutesInput.value = preferences.restMinutes;
+    }
   }
-  else return;
+
+  //This is where the app is really kicked-off, setTime and renderTime are the two main routines.
+  setTime();
+  renderTime();
+}
+
+
+//This function is defined but never used.
+function setTimePreferences() {
+  localStorage.setItem(
+    "preferences",
+    JSON.stringify({
+      workMinutes: workMinutesInput.value.trim(),
+      restMinutes: restMinutesInput.value.trim()
+    })
+  );
 }
 
 playButton.addEventListener("click", startTimer);
 pauseButton.addEventListener("click", pauseTimer);
 stopButton.addEventListener("click", stopTimer);
+statusToggle.addEventListener("change", toggleStatus);
